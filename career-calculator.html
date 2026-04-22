@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>경력 계산기</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Noto Sans KR', sans-serif;
+      padding: 20px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 44px 40px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+    }
+
+    .title {
+      font-weight: 900;
+      font-size: 24px;
+      color: #fff;
+      letter-spacing: -0.5px;
+      margin: 0 0 6px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+      margin: 0 0 32px;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .year-input {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 22px;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      color: #fff;
+      outline: none;
+      letter-spacing: 1px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .year-input::placeholder {
+      color: rgba(255,255,255,0.18);
+      font-size: 18px;
+    }
+
+    .year-input:focus {
+      border-color: #a78bfa;
+      background: rgba(167,139,250,0.08);
+    }
+
+    .year-input.shake {
+      animation: shake 0.4s ease;
+      border-color: #f87171 !important;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20% { transform: translateX(-7px); }
+      40% { transform: translateX(7px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      color: #fff;
+      font-size: 15px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .result-box {
+      margin-top: 24px;
+      animation: fadeUp 0.35s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .birth-row {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .birth-label { font-size: 12px; color: rgba(255,255,255,0.4); }
+    .birth-sub { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 4px; }
+
+    .birth-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 36px;
+      font-weight: 700;
+      color: #a78bfa;
+      line-height: 1;
+    }
+
+    .birth-value span {
+      font-size: 16px;
+      color: rgba(255,255,255,0.45);
+      margin-left: 4px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 400;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stat-cell {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px 10px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.38);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .stat-value sub, .career-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 400;
+      vertical-align: middle;
+      margin-left: 1px;
+    }
+
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .gen-badge {
+      background: rgba(167,139,250,0.12);
+      border: 1px solid rgba(167,139,250,0.22);
+    }
+
+    .level-badge {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .badge-emoji { font-size: 20px; }
+
+    .badge-text strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .badge-text span {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .hint {
+      font-size: 11px;
+      color: rgba(255,255,255,0.22);
+      margin-top: 20px;
+      text-align: center;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const CURRENT_YEAR = 2026;
+
+    function calcAll(entranceYear, graduationYear) {
+      const birthYear = entranceYear - 18;
+      const koreanAge = CURRENT_YEAR - birthYear + 1;
+      const westernAge = CURRENT_YEAR - birthYear;
+      const careerYears = CURRENT_YEAR - graduationYear;
+      return { birthYear, koreanAge, westernAge, careerYears };
+    }
+
+    const generationLabel = (birthYear) => {
+      if (birthYear >= 1995 && birthYear <= 2009) return { label: "Z세대", emoji: "📱" };
+      if (birthYear >= 1981 && birthYear <= 1994) return { label: "밀레니얼", emoji: "💻" };
+      if (birthYear >= 1965 && birthYear <= 1980) return { label: "X세대", emoji: "🎸" };
+      if (birthYear >= 1955 && birthYear <= 1964) return { label: "베이비부머", emoji: "🌿" };
+      return { label: "시니어", emoji: "⭐" };
+    };
+
+    const careerLevel = (years) => {
+      if (years < 0) return { label: "재학/미취업", color: "#94a3b8" };
+      if (years === 0) return { label: "신입", color: "#34d399" };
+      if (years <= 3) return { label: "주니어", color: "#60a5fa" };
+      if (years <= 7) return { label: "미들급", color: "#a78bfa" };
+      if (years <= 15) return { label: "시니어급", color: "#f59e0b" };
+      return { label: "임원급", color: "#f87171" };
+    };
+
+    function App() {
+      const [entYear, setEntYear] = React.useState("");
+      const [gradYear, setGradYear] = React.useState("");
+      const [result, setResult] = React.useState(null);
+      const [shakeEnt, setShakeEnt] = React.useState(false);
+      const [shakeGrad, setShakeGrad] = React.useState(false);
+
+      const handleCalc = () => {
+        const ent = parseInt(entYear);
+        const grad = parseInt(gradYear);
+        let err = false;
+
+        if (!ent || ent < 1950 || ent > CURRENT_YEAR) {
+          setShakeEnt(true);
+          setTimeout(() => setShakeEnt(false), 500);
+          err = true;
+        }
+        if (!grad || grad < 1950 || grad > CURRENT_YEAR + 5) {
+          setShakeGrad(true);
+          setTimeout(() => setShakeGrad(false), 500);
+          err = true;
+        }
+        if (err) return;
+        if (grad < ent) {
+          setShakeGrad(true);
+          setTimeout(() => setShakeGrad(false), 500);
+          return;
+        }
+        setResult(calcAll(ent, grad));
+      };
+
+      const handleKey = (e) => { if (e.key === "Enter") handleCalc(); };
+
+      const gen = result ? generationLabel(result.birthYear) : null;
+      const level = result ? careerLevel(result.careerYears) : null;
+
+      return (
+        <div className="card">
+          <p className="title">🎓 경력 계산기</p>
+          <p className="subtitle">입학 · 졸업연도로 나이와 경력연수를 확인하세요</p>
+
+          <div className="input-row">
+            <div className="input-group">
+              <label>입학연도</label>
+              <input
+                className={`year-input${shakeEnt ? " shake" : ""}`}
+                type="number"
+                placeholder="2001"
+                value={entYear}
+                onChange={(e) => { setEntYear(e.target.value); setResult(null); }}
+                onKeyDown={handleKey}
+              />
+            </div>
+            <div className="input-group">
+              <label>졸업연도</label>
+              <input
+                className={`year-input${shakeGrad ? " shake" : ""}`}
+                type="number"
+                placeholder="2005"
+                value={gradYear}
+                onChange={(e) => { setGradYear(e.target.value); setResult(null); }}
+                onKeyDown={handleKey}
+              />
+            </div>
+          </div>
+
+          <button className="btn" onClick={handleCalc}>계산하기</button>
+
+          {result && (
+            <div className="result-box">
+              <div className="birth-row">
+                <div>
+                  <p className="birth-label">예상 출생연도</p>
+                  <p className="birth-sub">만 18세 입학 기준</p>
+                </div>
+                <p className="birth-value">{result.birthYear}<span>년생</span></p>
+              </div>
+
+              <div className="stats-grid">
+                <div className="stat-cell">
+                  <p className="stat-label">한국 나이</p>
+                  <p className="stat-value">{result.koreanAge}<sub>세</sub></p>
+                </div>
+                <div className="stat-cell">
+                  <p className="stat-label">만 나이</p>
+                  <p className="stat-value">{result.westernAge}<sub>세</sub></p>
+                </div>
+                <div className="stat-cell">
+                  <p className="stat-label">경력연수</p>
+                  <p className="stat-value" style={{color: level.color}}>
+                    {result.careerYears < 0 ? "-" : result.careerYears}
+                    <span className="career-sub">년</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="bottom-row">
+                <div className="badge gen-badge">
+                  <span className="badge-emoji">{gen.emoji}</span>
+                  <div className="badge-text">
+                    <strong style={{color:"#c4b5fd"}}>{gen.label}</strong>
+                    <span>{result.birthYear}년생</span>
+                  </div>
+                </div>
+                <div className="badge level-badge">
+                  <span className="badge-emoji">💼</span>
+                  <div className="badge-text">
+                    <strong style={{color: level.color}}>{level.label}</strong>
+                    <span>졸업 후 {result.careerYears < 0 ? 0 : result.careerYears}년차</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <p className="hint">
+            * 만 18세 입학 / 4년제 기준 · 2026년 현재 기준<br/>
+            * 경력연수는 졸업연도부터 현재까지 산정
+          </p>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
